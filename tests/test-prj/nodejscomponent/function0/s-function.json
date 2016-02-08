@@ -1,21 +1,21 @@
 {
-  "name" : "function1",
+  "name" : "function0",
   "custom": {
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "module1/function1/handler.handler",
+  "handler": "function0/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "module1/function1",
+      "path": "function0",
       "method": "GET",
       "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
-      "requestParameters": "$${endpointTemplate}",
-      "requestTemplates": "$${apiRequestTemplate}",
+      "requestParameters": {},
+      "requestTemplates": {},
       "responses": {
         "default": {
           "statusCode": "200",

@@ -4,7 +4,6 @@
     "./actions/ProjectInstall.js",
     "./actions/ProjectInit.js",
     "./actions/ComponentCreate.js",
-    "./actions/ModuleCreate.js",
     "./actions/FunctionRun.js",
     "./actions/FunctionCreate.js",
     "./actions/FunctionRunLambdaNodeJs.js",
@@ -28,6 +27,7 @@
     "./actions/ResourcesRemove.js",
     "./actions/RegionRemove.js",
     "./actions/StageRemove.js",
-    "./actions/ProjectRemove.js"
+    "./actions/ProjectRemove.js",
+    "./actions/FunctionLogs.js"
   ]
 }

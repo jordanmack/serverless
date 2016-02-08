@@ -1,20 +1,20 @@
 {
-  "name": "function2",
+  "name" : "function1",
   "custom": {
     "envVars": [],
     "excludePatterns": []
   },
-  "handler": "module1/function2/handler.handler",
+  "handler": "group1/function1/handler.handler",
   "timeout": 6,
   "memorySize": 1024,
   "events": [],
   "endpoints": [
     {
-      "path": "module1/function2",
+      "path": "group1/function1",
       "method": "GET",
-      "authorizationType": "none",
+      "authorizationType": "${endpointVariable}",
       "apiKeyRequired": false,
-      "requestParameters": {},
+      "requestParameters": "$${endpointTemplate}",
       "requestTemplates": "$${apiRequestTemplate}",
       "responses": {
         "default": {

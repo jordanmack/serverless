@@ -7,7 +7,7 @@ Serverless is the application framework for building web, mobile and IoT applica
 
 The Framework and its related tools are maintained by a dedicated, full-time team.  For updates, join our [Mailing List](http://eepurl.com/bvz5Nj).  We work on this live in our [Gitter Chatroom](https://gitter.im/serverless/serverless). Please join us, everyone is welcome :)
 
-Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on these all day long, [please send us a message](team@serverless.com).
+Also, we are hiring.  If you are a developer and these tools/idealogies appeal to you and you want to work on these all day long, [please send us a message](mailto:team@serverless.com).
 
 ## Features
 
@@ -47,11 +47,11 @@ Or you can create your own project
 serverless project create
 ```
 
-Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more info.  Enjoy!
+Refer to our [documentation](http://docs.serverless.com) for more info.  Enjoy!
 
 ## Links
 
-* [Documentation](http://docs.serverless.com/v0.3.0/docs/)
+* [Documentation](http://docs.serverless.com)
 * [Road Map](https://trello.com/b/EX6SxBJJ/serverless)
 * [Email Updates](http://eepurl.com/bvz5Nj)
 * [Gitter Chatroom](https://gitter.im/serverless/serverless)
@@ -64,10 +64,10 @@ Refer to our [documentation](http://docs.serverless.com/v0.1.0/docs/) for more i
 ## Projects
 Serverless Projects are shareable and installable.  You can publish them to npm and install them via the Serverless Framework CLI by using `$ serverless project install <project-name>`
 * [serverless-starter](https://github.com/serverless/serverless-starter) - A simple boilerplate for new projects with a few architectural options.
-* [serverless-graphql-blog](https://github.com/serverless/serverless-graphql-blog) - A blog boilerplate that leverages GraphQL in front of DyndamoDB to offer a minimal REST API feautring only 1 endpoint.
+* [serverless-graphql-blog](https://github.com/serverless/serverless-graphql-blog) - A blog boilerplate that leverages GraphQL in front of DyndamoDB to offer a minimal REST API featuring only 1 endpoint.
 
 ## Plugins
-Serverless is comprised of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
+Serverless is composed of Plugins.  A group of default Plugins ship with the Framework, and here are some others you can add to improve/help your workflow:
 * [Plugin Boilerplate](https://github.com/serverless/serverless-plugin-boilerplate) - Make a Serverless Plugin with this simple boilerplate.
 * [Serve](https://github.com/Nopik/serverless-serve) - Simulate API Gateway locally, so all function calls can be run via localhost.
 * [Alerting](https://github.com/martinlindenberg/serverless-plugin-alerting) - This Plugin adds Cloudwatch Alarms with SNS notifications for your Lambda functions.
@@ -86,3 +86,7 @@ We love our contributors! If you'd like to contribute to the project, feel free 
 * If you're out of ideas, but still want to contribute, check out our [Road Map](https://trello.com/b/EX6SxBJJ/serverless). There's a lot we want to get done, and we'd love your help!
 * Contributions are not just PRs! We'd be grateful for having you in our community, and if you could provide some support for new comers, that be great! You can also do that by answering [Serverless related questions on Stackoverflow](http://stackoverflow.com/questions/tagged/serverless-framework).
 * You can also contribute by writing. Feel free to let us know if you want to publish a useful original guide in our docs (attributed to you, thank you!) that you feel will help the community.
+
+## Consultants
+These consultants use the Serverless Framework and can help you build your serverless projects.
+* [Trek10](https://www.trek10.com/)
