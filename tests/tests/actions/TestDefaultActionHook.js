@@ -7,12 +7,12 @@
  */
 
 let Serverless = require('../../../lib/Serverless.js'),
-    SPlugin    = require('../../../lib/ServerlessPlugin'),
-    path       = require('path'),
-    utils      = require('../../../lib/utils/index'),
-    assert     = require('chai').assert,
-    testUtils  = require('../../test_utils'),
-    config     = require('../../config');
+  SPlugin      = require('../../../lib/Plugin'),
+  path         = require('path'),
+  utils        = require('../../../lib/utils/index'),
+  assert       = require('chai').assert,
+  testUtils    = require('../../test_utils'),
+  config       = require('../../config');
 
 let serverless;
 
@@ -41,7 +41,7 @@ class CustomPlugin extends SPlugin {
   registerHooks() {
 
     this.S.addHook(this._defaultActionPreHook.bind(this), {
-      action: 'componentCreate',
+      action: 'functionCreate',
       event:  'pre'
     });
 
@@ -68,8 +68,6 @@ class CustomPlugin extends SPlugin {
  */
 
 let validateResult = function(result) {
-  assert.equal(true, typeof result.options.sPath != 'undefined');
-  assert.equal(true, typeof result.options.runtime != 'undefined');
   assert.equal(true, typeof result.data.hook != 'undefined');
 };
 
@@ -77,46 +75,43 @@ describe('Test Default Action With Pre Hook', function() {
 
   before(function(done) {
     this.timeout(0);
+
     testUtils.createTestProject(config)
-        .then(projPath => {
+      .then(projectPath => {
 
-          process.chdir(projPath);
-          serverless = new Serverless({
-            interactive: false,
-            projectPath: projPath
-          });
-
-          serverless.addPlugin(new CustomPlugin(serverless, {}));
-
-          return serverless.state.load().then(function() {
-            done();
-          });
+        serverless = new Serverless({
+          projectPath,
+          interactive: false
         });
-  });
 
-  after(function(done) {
-    done();
+        return serverless.init()
+          .then(function() {
+            return serverless.addPlugin(new CustomPlugin(serverless, {}))
+              .then(function() {
+                done();
+              });
+          });
+      });
   });
 
   describe('Test Default Action With Pre Hook', function() {
-
     it('adds a pre hook to Component Create default Action', function(done) {
 
       this.timeout(0);
       let evt = {
         options: {
-          sPath:   'testcomponent'
+          path:   'testFunction'
         }
       };
 
-      serverless.actions.componentCreate(evt)
-          .then(function(result) {
-            validateResult(result);
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
+      serverless.actions.functionCreate(evt)
+        .then(function(result) {
+          validateResult(result);
+          done();
+        })
+        .catch(e => {
+          done(e);
+        });
     });
   });
 });
