@@ -1,0 +1,281 @@
+#!/usr/bin/env node
+
+'use strict';
+
+/**
+ * Serverless: Completion
+ *
+ * Primary handler for Bash tab completion.
+ */
+
+// Dependencies
+const fs = require('fs');
+const path = require('path');
+const lib = require('../lib/utils/completion');
+
+// Global Constants
+const command = process.argv[2];
+const argv = process.argv.slice(3);
+const projectFilename = lib.constants.projectFilename;
+const metaDirectory = lib.constants.metaDirectory;
+const serverlessHomeDirectory = lib.constants.serverlessHomeDirectory;
+const completionCacheFilePath = lib.constants.completionCacheFilePath;
+const serverlessVersion = require('../package.json').version;
+const projectPath = findProjectPath(process.cwd(), projectFilename);
+const installLocalArgument = '_installLocal';
+const installGlobalArgument = '_installGlobal';
+
+// Main entry point.
+(function()
+{
+	// Check for interactive execution.
+	// if(isInteractive())
+		// interactiveWarning();
+
+	// If unexpected argv length, return no results.
+	if(process.argv.length < 3)
+		process.exit(1);
+
+	// If this is an installation, print the script and exit.
+	if(process.argv.length === 3)
+	{
+		// Local installation into ~/.bashrc.
+		if(process.argv[2] === installLocalArgument)
+			bashCompletionScriptLocal();
+
+		// Global installation into /etc/bash_completions.d/serverless.
+		if(process.argv[2] === installGlobalArgument)
+			bashCompletionScriptGlobal();
+	}
+
+	// Base variables.
+	let completionData;
+	let completionCacheFilename;
+
+	// Determine the completion cache filename.
+	completionCacheFilename = lib.determineCacheFilename(projectPath);
+
+	// Check if the completion cache exists.
+	try
+	{
+		if(lib.fileExists(completionCacheFilename))
+		{
+			// Read the completion cache data.
+			completionData = JSON.parse(fs.readFileSync(completionCacheFilename));
+
+			// Check to make sure cache version matches current Serverless version.
+			if(!completionData.version || completionData.version !== serverlessVersion)
+				throw new Error("Serverless completion cache is for incorrect version of Serverless.");
+
+			// Execute the completion handler.
+			completionHandler(completionData.data, argv);
+		}
+		else
+			throw new Error("Serverless completion cache file does not exist.");
+	}
+	catch(e)
+	{
+		// Cache does not exist, regenerate.
+		generateCacheData(completionCacheFilename, function(error, data)
+		{
+			completionHandler(data.data, argv);
+		});
+	}
+})();
+
+/**
+ * Generates a new cache data file.
+ */
+function generateCacheData(completionCacheFilename, callback)
+{
+	// Base variables.
+	let completionData;
+
+	// Initialize Serverless. This is taken directly from bin/serverless.
+	const S     = require('../lib/Serverless'),
+	SUtils      = require('../lib/utils'),
+	Project     = require('../lib/Project'),
+	serverless  = new S({
+		projectPath: SUtils.findProjectPath(process.cwd()),
+		interactive: typeof process.env.CI === 'undefined'
+	});
+
+	// Init serverless, then generate completion data.
+	serverless.init()
+	.then(function()
+	{
+		// Generate completion data.
+		completionData = lib.parseCommandsObject(serverless.commands);
+		completionData = lib.supplimentCompletionData(completionData);
+		completionData = lib.versionCompletionData(completionData, serverlessVersion);
+
+		// Write completion data to disk.
+		lib.writeCompletionFile(completionCacheFilename, completionData);
+
+		// Execute the completion handler.
+		callback(null, completionData);
+	});
+}
+
+/**
+ * Displays the appropriate completion data to stdout.
+ */
+function completionHandler(completionData, argv)
+{
+	let completions = [];
+
+	// Determine the appropriate completions for the given arguments.
+	completions = completionsForArguments(completionData, argv);
+
+	// Output all available completions.
+	completions.forEach(function(value)
+	{
+		console.log(value);
+	});      
+}
+
+/**
+ * Generate a list of completions for the given arguments.
+ */
+function completionsForArguments(completionData, argv)
+{
+	// If no arguments, provide a full list at the current depth.
+	if(argv.length === 0 || argv[0].length === 0)
+		return completionFilter(Object.keys(completionData), "");
+
+	// If the first argument was not found.
+	if(!completionData.hasOwnProperty(argv[0]))
+	{
+		// If the current argument is the last provided, then give a list of matching completions.
+		if(argv.length === 1)
+			return completionFilter(Object.keys(completionData), argv[0]);
+		// If the current argument is not the last one, then return empty since there is no possibility of a match on the next argument.
+		else
+			return [];
+	}
+
+	// The first argument is a valid property at the current depth. Recursively check the next argument.
+	return completionsForArguments(completionData[argv[0]], argv.slice(1));
+}
+
+/**
+ * Filters the possible completions based on the word which was supplied.
+ */
+function completionFilter(completions, word)
+{
+	// Define the filter to pass to Array.filter.
+	const filter = function(element, index, array)
+	{
+		// If the current word being typed is empty, do not display the hyphen options.
+		if(!this || this.length == 0)
+			return !element.startsWith("-");
+
+		// Display options that start with the current word.
+		return element.startsWith(this);
+	};
+
+	// Return a filtered array.
+	return completions.filter(filter, word);
+}
+
+/**
+ * Check if the application was called interactively from the CLI.
+ */
+function isInteractive()
+{
+	return process.stdout.isTTY;
+};
+
+/**
+ * Find the base path of the project, if it exists. 
+ */
+function findProjectPath(directoryCurrent, projectFilename)
+{
+	// Keep checking until we are at root. Note: / is not checked since that is extremely unlikely.
+	while(directoryCurrent !== "/")
+	{
+		// If the project file exists in the current path, return the path.
+		if(lib.fileExists(path.join(directoryCurrent, projectFilename)))
+			return directoryCurrent;
+
+		// Set the current folder to the parent of the current.
+		directoryCurrent = path.dirname(directoryCurrent);
+	}
+
+	// Project path was not found.
+	return false;
+}
+
+/**
+ * Display a warning to users who launched it from the CLI, and quit.
+ */
+function interactiveWarning()
+{
+	// Display warning.
+	console.log("");
+	console.log("Hey, what are you doing here?");
+	console.log("This application is used for bash tab completions.");
+	console.log("You can't really do anything with it interactively. Sorry.");
+	console.log("");
+
+	// Exit the process.
+	process.exit(0);
+}
+
+/**
+ * Output the bash completion script for local installation.
+ */
+function bashCompletionScriptLocal()
+{
+	// Output script.
+	console.log("");
+	console.log("###-begin-serverless-completion-###");
+	console.log("# This script should be placed in your ~/.bashrc  or ~/.bash_profile file.");
+	console.log("# http://www.serverless.com");
+	console.log("");
+	console.log("if type complete &> /dev/null; then");
+	console.log("  _serverless_completion () {");
+	console.log("    local ifsOld=\"$IFS\"");
+	console.log("    IFS=$'\\n' COMPREPLY=($(COMP_CWORD=\"$COMP_CWORD\" \\");
+	console.log("                           COMP_LINE=\"$COMP_LINE\" \\");
+	console.log("                           COMP_POINT=\"$COMP_POINT\" \\");
+	console.log("                           Serverless-completion \"${COMP_WORDS[@]}\" \\");
+	console.log("                           2> /dev/null)) || return $?");
+	console.log("    IFS=\"$ifsOld\"");
+	console.log("  }");
+	console.log("  complete -F _serverless_completion serverless sls slss");
+	console.log("  export SERVERLESS_COMPLETION=1");
+	console.log("fi");
+	console.log("###-end-serverless-completion-###");
+
+	// Exit the process.
+	process.exit(0);
+}
+
+/**
+ * Output the bash completion script for global installation.
+ */
+function bashCompletionScriptGlobal()
+{
+	// Output script.
+	console.log("###-begin-serverless-completion-###");
+	console.log("# This script should be placed in /etc/bash_completions.d/serverless.");
+	console.log("# http://www.serverless.com");
+	console.log("");
+	console.log("have serverless &&");
+	console.log("_serverless_completion () {");
+	console.log("  local ifsOld=\"$IFS\"");
+	console.log("  IFS=$'\\n' COMPREPLY=($(COMP_CWORD=\"$COMP_CWORD\" \\");
+	console.log("                         COMP_LINE=\"$COMP_LINE\" \\");
+	console.log("                         COMP_POINT=\"$COMP_POINT\" \\");
+	console.log("                         Serverless-completion \"${COMP_WORDS[@]}\" \\");
+	console.log("                         2> /dev/null)) || return $?");
+	console.log("  IFS=\"$ifsOld\"");
+	console.log("} &&");
+	console.log("export SERVERLESS_COMPLETION=1 &&");
+	console.log("complete -F _serverless_completion serverless sls slss");
+	console.log("###-end-serverless-completion-###");
+
+	// Exit the process.
+	process.exit(0);
+}
